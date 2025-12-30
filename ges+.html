@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>GES+ Interpreter</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #111;
+    color: #0f0;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+}
+#editor {
+    width: 40%;
+    background: #000;
+    padding: 10px;
+}
+#editor textarea {
+    width: 100%;
+    height: 90%;
+    background: #000;
+    color: #0f0;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+#run {
+    width: 100%;
+    padding: 10px;
+    background: #0f0;
+    border: none;
+    cursor: pointer;
+}
+#output {
+    width: 60%;
+    padding: 20px;
+    overflow: auto;
+}
+button {
+    margin: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="editor">
+<textarea id="code">
+text# "مرحبا بك في GES+"
+var# x = 10
+print# x
+button# "اضغطني" -> alert("GES+ 🔥")
+image# "https://picsum.photos/200"
+bg# #222
+</textarea>
+<button id="run">RUN ▶</button>
+</div>
+
+<div id="output"></div>
+
+<script>
+const vars = {};
+
+function runGES(code) {
+    const output = document.getElementById("output");
+    output.innerHTML = "";
+
+    const lines = code.split("\n");
+
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line) return;
+
+        // text#
+        if (line.startsWith("text#")) {
+            const text = line.match(/"(.*)"/)?.[1];
+            if (text) {
+                const p = document.createElement("p");
+                p.textContent = text;
+                output.appendChild(p);
+            }
+        }
+
+        // image#
+        else if (line.startsWith("image#")) {
+            const src = line.match(/"(.*)"/)?.[1];
+            if (src) {
+                const img = document.createElement("img");
+                img.src = src;
+                img.style.maxWidth = "200px";
+                output.appendChild(img);
+            }
+        }
+
+        // button#
+        else if (line.startsWith("button#")) {
+            const match = line.match(/"(.*)"\s*->\s*(.*)/);
+            if (match) {
+                const btn = document.createElement("button");
+                btn.textContent = match[1];
+                btn.onclick = () => eval(match[2]);
+                output.appendChild(btn);
+            }
+        }
+
+        // bg#
+        else if (line.startsWith("bg#")) {
+            const color = line.replace("bg#", "").trim();
+            document.body.style.background = color;
+        }
+
+        // var#
+        else if (line.startsWith("var#")) {
+            const exp = line.replace("var#", "").trim();
+            const [name, value] = exp.split("=");
+            vars[name.trim()] = value.trim();
+        }
+
+        // print#
+        else if (line.startsWith("print#")) {
+            const name = line.replace("print#", "").trim();
+            const p = document.createElement("p");
+            p.textContent = vars[name] ?? "undefined";
+            output.appendChild(p);
+        }
+    });
+}
+
+document.getElementById("run").onclick = () => {
+    runGES(document.getElementById("code").value);
+};
+</script>
+
+</body>
+</html>
